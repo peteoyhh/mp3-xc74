@@ -37,12 +37,16 @@ function buildQuery(model, req) {
       const skipNum = parseInt(req.query.skip);
       if (!isNaN(skipNum)) query = query.skip(skipNum);
     }
-  
+    
+
     // LIMIT
     if (req.query.limit) {
-      const limitNum = parseInt(req.query.limit);
-      if (!isNaN(limitNum)) query = query.limit(limitNum);
+        const limitNum = parseInt(req.query.limit);
+        if (!isNaN(limitNum)) query = query.limit(limitNum);
+    } else {
+        if (model.modelName === 'Task') query = query.limit(100);
     }
+  
   
     return query;
   }
