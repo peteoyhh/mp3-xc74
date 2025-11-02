@@ -74,7 +74,7 @@ app.get('/', (req, res) => {
       <p>Welcome! Choose an endpoint below:</p>
       <a class="btn" href="/api/users">View Users</a>
       <a class="btn" href="/api/tasks">View Tasks</a>
-      <a class="btn" href="https://github.com" target="_blank">API Docs</a>
+      <a class="btn" href="https://github.com/peteoyhh/mp3-xc74" target="_blank">API Docs</a>
     </body>
     </html>
   `);
