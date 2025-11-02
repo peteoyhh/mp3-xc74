@@ -85,11 +85,12 @@ module.exports = function (router) {
 
     .put(async (req, res) => {
       try {
+        const id = req.params.id.trim();
         const { name, description, deadline, completed, assignedUser, assignedUserName } = req.body;
         if (!name || !deadline)
           return res.status(400).json({ message: 'Name and deadline are required', data: [] });
 
-        const task = await Task.findById(req.params.id);
+        const task = await Task.findById(id);
         if (!task)
           return res.status(404).json({ message: 'Task not found', data: [] });
 
@@ -123,7 +124,8 @@ module.exports = function (router) {
 
     .delete(async (req, res) => {
       try {
-        const task = await Task.findById(req.params.id);
+        const id = req.params.id.trim();
+        const task = await Task.findById(id);
         if (!task)
           return res.status(404).json({ message: 'Task not found', data: [] });
 

@@ -60,9 +60,10 @@ module.exports = function (router) {
   // GET / PUT / DELETE by id
   router.route('/users/:id')
     .get(async (req, res) => {
+      const id = req.params.id.trim();
       try {
         const select = req.query.select ? JSON.parse(req.query.select) : null;
-        const user = await User.findById(req.params.id, select || undefined).lean();
+        const user = await User.findById(id, select || undefined).lean();
     
         if (!user)
           return res.status(404).json({ message: 'User not found', data: [] });
@@ -83,12 +84,13 @@ module.exports = function (router) {
     })
 
     .put(async (req, res) => {
+      const id = req.params.id.trim();
       try {
         const { name, email, pendingTasks } = req.body;
         if (!name || !email)
           return res.status(400).json({ message: 'Name and email are required', data: [] });
 
-        const user = await User.findById(req.params.id);
+        const user = await User.findById(id);
         if (!user)
           return res.status(404).json({ message: 'User not found', data: [] });
 
@@ -128,8 +130,9 @@ module.exports = function (router) {
     })
 
     .delete(async (req, res) => {
+      const id = req.params.id.trim();
       try {
-        const user = await User.findById(req.params.id);
+        const user = await User.findById(id);
         if (!user)
           return res.status(404).json({ message: 'User not found', data: [] });
 
