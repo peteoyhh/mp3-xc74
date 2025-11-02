@@ -34,13 +34,50 @@ mongoose.connect(mongoURI, {
 require('./routes')(app, router);
 
 app.get('/', (req, res) => {
-  res.json({
-    message: 'Welcome to the MP3 Task Management API!',
-    endpoints: {
-      users: '/api/users',
-      tasks: '/api/tasks'
-    }
-  });
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <title>MP3 Task Management API</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          background: #f8f9fa;
+          text-align: center;
+          padding: 80px;
+        }
+        h1 {
+          color: #2c3e50;
+        }
+        p {
+          color: #555;
+          font-size: 1.1rem;
+        }
+        .btn {
+          display: inline-block;
+          margin: 10px;
+          padding: 10px 20px;
+          background-color: #007bff;
+          color: white;
+          text-decoration: none;
+          border-radius: 6px;
+          transition: background-color 0.2s;
+        }
+        .btn:hover {
+          background-color: #0056b3;
+        }
+      </style>
+    </head>
+    <body>
+      <h1>MP3 Task Management API</h1>
+      <p>Welcome! Choose an endpoint below:</p>
+      <a class="btn" href="/api/users">View Users</a>
+      <a class="btn" href="/api/tasks">View Tasks</a>
+      <a class="btn" href="https://github.com" target="_blank">API Docs</a>
+    </body>
+    </html>
+  `);
 });
 
 // Start server
