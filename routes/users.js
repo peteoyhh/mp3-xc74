@@ -1,4 +1,5 @@
 // routes/users.js
+const mongoose = require('mongoose');
 const User = require('../models/user');
 const Task = require('../models/task');
 const { buildQuery } = require('./utils');
@@ -27,16 +28,17 @@ module.exports = function (router) {
       try {
         const { name, email, pendingTasks } = req.body;
         if (!name || !email)
-          return res.status(400).json({ message: 'Name and email are required', data: {} });
+          return res.status(400).json({ message: 'Name and email are required', data: [] });
 
         const existing = await User.findOne({ email: email.toLowerCase() });
         if (existing)
-          return res.status(400).json({ message: 'Email already exists', data: {} });
+          return res.status(400).json({ message: 'Email already exists', data: [] });
 
         const newUser = new User({
           name,
           email: email.toLowerCase(),
-          pendingTasks: Array.isArray(pendingTasks) ? pendingTasks : []
+          pendingTasks: Array.isArray(pendingTasks) ? pendingTasks : [],
+          dateCreated: new Date()
         });
 
         const savedUser = await newUser.save();
@@ -67,6 +69,7 @@ module.exports = function (router) {
     
         // enforce field order for response
         const orderedUser = {
+          _id: user._id,
           name: user.name,
           email: user.email,
           pendingTasks: user.pendingTasks,
@@ -85,7 +88,7 @@ module.exports = function (router) {
         if (!name || !email)
           return res.status(400).json({ message: 'Name and email are required', data: [] });
 
-        const user = await User.findById(req.params.id, select || undefined);
+        const user = await User.findById(req.params.id);
         if (!user)
           return res.status(404).json({ message: 'User not found', data: [] });
 
@@ -94,10 +97,15 @@ module.exports = function (router) {
           return res.status(400).json({ message: 'Email already exists', data: [] });
 
         // unassign old tasks
-        await Task.updateMany(
-          { _id: { $in: user.pendingTasks } },
-          { assignedUser: '', assignedUserName: 'unassigned' }
-        );
+        if (Array.isArray(user.pendingTasks) && user.pendingTasks.length > 0) {
+          const validOldTasks = user.pendingTasks.filter(id => mongoose.Types.ObjectId.isValid(id));
+          if (validOldTasks.length > 0) {
+            await Task.updateMany(
+              { _id: { $in: validOldTasks } },
+              { assignedUser: '', assignedUserName: 'unassigned' }
+            );
+          }
+        }
 
         user.name = name;
         user.email = email.toLowerCase();
@@ -126,10 +134,15 @@ module.exports = function (router) {
           return res.status(404).json({ message: 'User not found', data: [] });
 
         // unassign all their tasks
-        await Task.updateMany(
-          { _id: { $in: user.pendingTasks } },
-          { assignedUser: '', assignedUserName: 'unassigned' }
-        );
+        if (Array.isArray(user.pendingTasks) && user.pendingTasks.length > 0) {
+          const validTaskIds = user.pendingTasks.filter(id => mongoose.Types.ObjectId.isValid(id));
+          if (validTaskIds.length > 0) {
+            await Task.updateMany(
+              { _id: { $in: validTaskIds } },
+              { assignedUser: '', assignedUserName: 'unassigned' }
+            );
+          }
+        }
 
         await user.deleteOne();
         return res.status(200).json({ message: 'User deleted', data: [] });

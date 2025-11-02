@@ -1,4 +1,5 @@
 // routes/tasks.js
+const mongoose = require('mongoose');
 const Task = require('../models/task');
 const User = require('../models/user');
 const { buildQuery } = require('./utils');
@@ -39,7 +40,7 @@ module.exports = function (router) {
         const savedTask = await newTask.save();
 
         // update assigned user's pendingTasks
-        if (savedTask.assignedUser) {
+        if (savedTask.assignedUser && mongoose.Types.ObjectId.isValid(savedTask.assignedUser)) {
           await User.findByIdAndUpdate(
             savedTask.assignedUser,
             { $addToSet: { pendingTasks: savedTask._id.toString() } }
@@ -48,7 +49,7 @@ module.exports = function (router) {
 
         return res.status(201).json({ message: 'Task created', data: savedTask });
       } catch (err) {
-        return res.status(500).json({ message: 'Server error creating task', data: err.message });
+        return res.status(500).json({ message: 'Server error creating task', data: [] });
       }
     });
 
@@ -89,13 +90,16 @@ module.exports = function (router) {
         const savedTask = await task.save();
 
         // add to new user
-        if (assignedUser) {
-          await User.findByIdAndUpdate(assignedUser, { $addToSet: { pendingTasks: savedTask._id.toString() } });
+        if (assignedUser && mongoose.Types.ObjectId.isValid(assignedUser)) {
+          await User.findByIdAndUpdate(
+            assignedUser,
+            { $addToSet: { pendingTasks: savedTask._id.toString() } }
+          );
         }
 
         return res.status(200).json({ message: 'Task updated', data: savedTask });
       } catch (err) {
-        return res.status(500).json({ message: 'Server error updating task', data: err.message });
+        return res.status(500).json({ message: 'Server error updating task', data: [] });
       }
     })
 
@@ -106,14 +110,17 @@ module.exports = function (router) {
           return res.status(404).json({ message: 'Task not found', data: [] });
 
         // remove from user's pendingTasks if assigned
-        if (task.assignedUser) {
-          await User.findByIdAndUpdate(task.assignedUser, { $pull: { pendingTasks: task._id.toString() } });
+        if (task.assignedUser && mongoose.Types.ObjectId.isValid(task.assignedUser)) {
+          await User.findByIdAndUpdate(
+            task.assignedUser,
+            { $pull: { pendingTasks: task._id.toString() } }
+          );
         }
 
         await task.deleteOne();
         return res.status(200).json({ message: 'Task deleted', data: [] });
       } catch (err) {
-        return res.status(500).json({ message: 'Server error deleting task', data: err.message });
+        return res.status(500).json({ message: 'Server error deleting task', data: [] });
       }
     });
 
