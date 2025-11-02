@@ -56,12 +56,30 @@ module.exports = function (router) {
   router.route('/tasks/:id')
     .get(async (req, res) => {
       try {
-        const select = req.query.select ? JSON.parse(req.query.select) : null;
-        const task = await Task.findById(req.params.id, select || undefined);
-        if (!task) return res.status(404).json({ message: 'Task not found', data: [] });
+        const id = req.params.id.trim();
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+          return res.status(400).json({ message: 'Invalid task ID format', data: [] });
+        }
+
+        let select = null;
+        if (req.query.select) {
+          try {
+            select = JSON.parse(req.query.select);
+          } catch {
+            return res.status(400).json({ message: 'Invalid JSON in select parameter', data: [] });
+          }
+        }
+
+        const task = await Task.findById(id, select || undefined);
+        if (!task) {
+          return res.status(404).json({ message: 'Task not found', data: [] });
+        }
+
         return res.status(200).json({ message: 'OK', data: task });
-      } catch {
-        return res.status(400).json({ message: 'Invalid request', data: [] });
+      } catch (err) {
+        console.error('Error in GET /tasks/:id:', err.message);
+        return res.status(500).json({ message: 'Server error fetching task', data: err.message });
       }
     })
 
